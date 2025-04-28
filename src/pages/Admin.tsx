@@ -4,7 +4,7 @@ import { blogPosts } from '@/data/blog-posts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { pencil, trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const Admin = () => {
   return (
@@ -36,10 +36,10 @@ const Admin = () => {
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="outline" size="icon">
-                      <pencil className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="icon" className="text-red-500">
-                      <trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -53,3 +53,4 @@ const Admin = () => {
 };
 
 export default Admin;
+
