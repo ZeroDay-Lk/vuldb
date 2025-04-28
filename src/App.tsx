@@ -10,6 +10,7 @@ import CategoryPage from "./pages/CategoryPage";
 import Categories from "./pages/Categories";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/category/:categorySlug" element={<CategoryPage />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/about" element={<About />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
