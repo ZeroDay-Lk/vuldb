@@ -1,4 +1,3 @@
-
 export interface BlogPostData {
   id: string;
   title: string;
@@ -44,8 +43,8 @@ XSS occurs when an application includes untrusted data in a new web page without
 
 \`\`\`javascript
 // Vulnerable code example
-const userQuery = req.query.q;
-res.send(\`<p>Search results for: ${userQuery}</p>\`); // Dangerous!
+const userInput = req.query.q;
+res.send(\`<p>Search results for: \${userInput}</p>\`); // Dangerous!
 \`\`\`
 
 2. **Stored XSS**: The malicious script is stored on the target server.
@@ -131,8 +130,8 @@ SQL injection attacks happen when user-supplied data isn't properly validated an
 \`\`\`javascript
 // Vulnerable Node.js code
 app.get('/user', (req, res) => {
-  const requestedId = req.query.id;
-  const query = \`SELECT * FROM users WHERE id = ${requestedId}\`;
+  const userInput = req.query.id;
+  const query = \`SELECT * FROM users WHERE id = \${userInput}\`;
   // Execute query...
 });
 \`\`\`
@@ -180,7 +179,7 @@ Always use parameterized queries or prepared statements:
 \`\`\`javascript
 // Safe approach using parameterized query
 const query = 'SELECT * FROM users WHERE id = ?';
-connection.query(query, [requestedId], (error, results) => {
+connection.query(query, [userInput], (error, results) => {
   // Handle results
 });
 \`\`\`
@@ -192,7 +191,7 @@ Use ORM frameworks that handle SQL escaping for you:
 \`\`\`javascript
 // Using Sequelize ORM
 const user = await User.findOne({ 
-  where: { id: requestedId } 
+  where: { id: userInput } 
 });
 \`\`\`
 
@@ -341,7 +340,7 @@ Consider an API endpoint that retrieves user data:
 \`\`\`javascript
 // Vulnerable endpoint
 app.get('/api/users/:userId/data', (req, res) => {
-  const { userId } = req.params;
+  const userId = req.params.userId;
   
   // No authorization check to verify the requesting user
   // should have access to this userId's data
@@ -379,11 +378,11 @@ Always verify that the current user has permission to access the requested resou
 \`\`\`javascript
 // Secure implementation
 app.get('/api/users/:userId/data', (req, res) => {
-  const { userId } = req.params;
-  const currentUserId = req.user.id;
+  const userId = req.params.userId;
+  const currentUser = req.user.id;
   
   // Check if the current user has permission to access this data
-  if (userId != currentUserId && !req.user.isAdmin) {
+  if (userId != currentUser && !req.user.isAdmin) {
     return res.status(403).json({ error: 'Access denied' });
   }
   
@@ -425,10 +424,10 @@ Use a consistent authorization mechanism across the entire application:
 function authorizeResource(resourceType) {
   return async (req, res, next) => {
     const resourceId = req.params.id;
-    const currentUserId = req.user.id;
+    const currentUser = req.user.id;
     
     const hasAccess = await accessControlService.checkAccess(
-      currentUserId, 
+      currentUser, 
       resourceType, 
       resourceId
     );
