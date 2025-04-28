@@ -1,15 +1,35 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { blogPosts } from '@/data/blog-posts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Admin = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdmin');
+    navigate('/login');
+    toast.success('Logged out successfully');
+  };
+
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Blog Posts Admin</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Blog Posts Admin</h1>
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
+      </div>
       
       <div className="mb-6">
         <Button className="bg-vulnscribe-purple hover:bg-vulnscribe-lightpurple">
@@ -53,4 +73,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
