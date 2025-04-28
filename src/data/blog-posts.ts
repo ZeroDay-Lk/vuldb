@@ -44,8 +44,8 @@ XSS occurs when an application includes untrusted data in a new web page without
 
 \`\`\`javascript
 // Vulnerable code example
-const searchQuery = req.query.q;
-res.send(\`<p>Search results for: ${searchQuery}</p>\`); // Dangerous!
+const userQuery = req.query.q;
+res.send(\`<p>Search results for: ${userQuery}</p>\`); // Dangerous!
 \`\`\`
 
 2. **Stored XSS**: The malicious script is stored on the target server.
@@ -131,8 +131,8 @@ SQL injection attacks happen when user-supplied data isn't properly validated an
 \`\`\`javascript
 // Vulnerable Node.js code
 app.get('/user', (req, res) => {
-  const userId = req.query.id;
-  const query = \`SELECT * FROM users WHERE id = ${userId}\`;
+  const requestedId = req.query.id;
+  const query = \`SELECT * FROM users WHERE id = ${requestedId}\`;
   // Execute query...
 });
 \`\`\`
@@ -180,7 +180,7 @@ Always use parameterized queries or prepared statements:
 \`\`\`javascript
 // Safe approach using parameterized query
 const query = 'SELECT * FROM users WHERE id = ?';
-connection.query(query, [userId], (error, results) => {
+connection.query(query, [requestedId], (error, results) => {
   // Handle results
 });
 \`\`\`
@@ -192,7 +192,7 @@ Use ORM frameworks that handle SQL escaping for you:
 \`\`\`javascript
 // Using Sequelize ORM
 const user = await User.findOne({ 
-  where: { id: userId } 
+  where: { id: requestedId } 
 });
 \`\`\`
 
@@ -425,10 +425,10 @@ Use a consistent authorization mechanism across the entire application:
 function authorizeResource(resourceType) {
   return async (req, res, next) => {
     const resourceId = req.params.id;
-    const userId = req.user.id;
+    const currentUserId = req.user.id;
     
     const hasAccess = await accessControlService.checkAccess(
-      userId, 
+      currentUserId, 
       resourceType, 
       resourceId
     );
