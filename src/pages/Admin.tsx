@@ -35,6 +35,13 @@ import {
   createSamplePost
 } from '@/services/blogService';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define the form schema for blog posts
 const blogPostSchema = z.object({
@@ -58,6 +65,8 @@ const Admin = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<BlogPostData | null>(null);
   const [isCreatingSample, setIsCreatingSample] = useState(false);
+  const [samplePostNumber, setSamplePostNumber] = useState<number>(1);
+  const [isSampleDialogOpen, setIsSampleDialogOpen] = useState(false);
   
   useEffect(() => {
     fetchPosts();
@@ -139,11 +148,12 @@ const Admin = () => {
   const handleCreateSamplePost = async () => {
     try {
       setIsCreatingSample(true);
-      const newPostId = await createSamplePost();
+      setIsSampleDialogOpen(false);
+      const newPostId = await createSamplePost(samplePostNumber);
       
       if (newPostId) {
         await fetchPosts(); // Refetch posts to get the new one
-        toast.success("Sample blog post created successfully");
+        toast.success(`Sample blog post #${samplePostNumber} created successfully`);
       } else {
         toast.error("Failed to create sample blog post");
       }
@@ -212,6 +222,19 @@ const Admin = () => {
     }
   };
 
+  const samplePosts = [
+    "XSS Vulnerabilities",
+    "SQL Injection Attacks",
+    "CSRF Attacks",
+    "Broken Authentication",
+    "Insecure Direct Object References",
+    "Security Headers",
+    "Secure File Upload",
+    "Server-Side Request Forgery",
+    "API Security",
+    "OWASP Top 10"
+  ];
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -237,7 +260,7 @@ const Admin = () => {
         <Button 
           variant="outline"
           className="flex items-center gap-2"
-          onClick={handleCreateSamplePost}
+          onClick={() => setIsSampleDialogOpen(true)}
           disabled={isCreatingSample}
         >
           <PlusCircle className="h-4 w-4" />
@@ -577,6 +600,56 @@ const Admin = () => {
               onClick={handleDeletePost}
             >
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sample Post Dialog */}
+      <Dialog open={isSampleDialogOpen} onOpenChange={setIsSampleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Sample Blog Post</DialogTitle>
+            <DialogDescription>
+              Select which sample blog post you would like to create.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <FormLabel>Sample Post</FormLabel>
+              <Select 
+                value={samplePostNumber.toString()} 
+                onValueChange={(value) => setSamplePostNumber(parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sample post" />
+                </SelectTrigger>
+                <SelectContent>
+                  {samplePosts.map((post, index) => (
+                    <SelectItem key={index + 1} value={(index + 1).toString()}>
+                      {index + 1}. {post}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsSampleDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleCreateSamplePost}
+              disabled={isCreatingSample}
+            >
+              {isCreatingSample ? "Creating..." : "Create Sample Post"}
             </Button>
           </DialogFooter>
         </DialogContent>
