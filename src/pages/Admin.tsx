@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, Trash2, LogOut, X, Check } from 'lucide-react';
+import { Pencil, Trash2, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -41,6 +40,8 @@ const blogPostSchema = z.object({
   content: z.string().min(1, "Content is required"),
   category: z.string().min(1, "Category is required"),
   imageSrc: z.string().optional(),
+  readTime: z.string().optional().default("5 min read"),
+  featured: z.boolean().optional().default(false),
 });
 
 type BlogPostFormValues = z.infer<typeof blogPostSchema>;
@@ -79,6 +80,8 @@ const Admin = () => {
       content: "",
       category: "",
       imageSrc: "",
+      readTime: "5 min read",
+      featured: false,
     },
   });
   
@@ -91,6 +94,8 @@ const Admin = () => {
       content: "",
       category: "",
       imageSrc: "",
+      readTime: "5 min read",
+      featured: false,
     },
   });
 
@@ -103,9 +108,13 @@ const Admin = () => {
   const handleCreatePost = async (data: BlogPostFormValues) => {
     try {
       const newPostId = await createBlogPost({
-        ...data,
-        readTime: "5 min read",
-        featured: false,
+        title: data.title,
+        excerpt: data.excerpt,
+        content: data.content,
+        category: data.category,
+        imageSrc: data.imageSrc,
+        readTime: data.readTime || "5 min read",
+        featured: data.featured || false,
       });
 
       if (newPostId) {
@@ -129,6 +138,8 @@ const Admin = () => {
       content: post.content || "",
       category: post.category,
       imageSrc: post.imageSrc || "",
+      readTime: post.readTime,
+      featured: post.featured,
     });
     setIsEditDialogOpen(true);
   };
@@ -340,6 +351,25 @@ const Admin = () => {
                 )}
               />
               
+              <FormField
+                control={createForm.control}
+                name="featured"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Featured</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
               <DialogFooter>
                 <Button 
                   type="button" 
@@ -437,6 +467,25 @@ const Admin = () => {
                     <FormLabel>Image URL</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={editForm.control}
+                name="featured"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Featured</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        className="w-4 h-4"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

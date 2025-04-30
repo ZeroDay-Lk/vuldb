@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -46,9 +45,9 @@ const BlogPost = () => {
         // Extract language if specified after first backtick
         const languageMatch = part.match(/^([a-zA-Z]+)\n/);
         const language = languageMatch ? languageMatch[1] : 'text';
-        const code = languageMatch ? part.substring(languageMatch[0].length) : part;
+        const codeContent = languageMatch ? part.substring(languageMatch[0].length) : part;
         
-        return <CodeBlock key={index} language={language} code={code} />;
+        return <CodeBlock key={index} language={language} codeContent={codeContent} />;
       }
       
       // Regular text - split by newlines and create paragraphs
