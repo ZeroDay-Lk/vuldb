@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CategoryBadge from '@/components/CategoryBadge';
 import CodeBlock from '@/components/CodeBlock';
-import { getBlogPostById } from '@/services/blogService';
+import { getBlogPostById } from '@/services/blog';
 import { toast } from 'sonner';
 import { BlogPostData } from '@/data/blog-posts';
 

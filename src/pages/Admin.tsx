@@ -33,7 +33,7 @@ import {
   updateBlogPost, 
   deleteBlogPost,
   createSamplePost
-} from '@/services/blogService';
+} from '@/services/blog';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
