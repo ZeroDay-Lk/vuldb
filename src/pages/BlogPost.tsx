@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -47,7 +48,7 @@ const BlogPost = () => {
         const language = languageMatch ? languageMatch[1] : 'text';
         const codeContent = languageMatch ? part.substring(languageMatch[0].length) : part;
         
-        return <CodeBlock key={index} language={language} codeContent={codeContent} />;
+        return <CodeBlock key={index} language={language}>{codeContent}</CodeBlock>;
       }
       
       // Regular text - split by newlines and create paragraphs
@@ -125,7 +126,7 @@ const BlogPost = () => {
       
       <main className="flex-grow">
         {/* Header section with featured image */}
-        {post.imageSrc && (
+        {post?.imageSrc && (
           <div className="w-full h-80 md:h-96 relative">
             <img 
               src={post.imageSrc} 
@@ -136,7 +137,7 @@ const BlogPost = () => {
           </div>
         )}
         
-        <div className={`container ${post.imageSrc ? '-mt-32 relative z-10' : 'mt-8'} mb-16`}>
+        <div className={`container ${post?.imageSrc ? '-mt-32 relative z-10' : 'mt-8'} mb-16`}>
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-10">
             <Link to="/" className="inline-flex items-center text-vulnscribe-purple hover:underline mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -144,13 +145,13 @@ const BlogPost = () => {
             </Link>
             
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <CategoryBadge category={post.category} />
-              <span className="text-sm text-gray-500">{post.date} · {post.readTime}</span>
+              {post?.category && <CategoryBadge category={post.category} />}
+              <span className="text-sm text-gray-500">{post?.date} · {post?.readTime}</span>
             </div>
             
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-vulnscribe-dark">{post.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-vulnscribe-dark">{post?.title}</h1>
             
-            {post.author && (
+            {post?.author && (
               <div className="flex items-center gap-3 mb-8 pb-8 border-b">
                 <img 
                   src={post.author.avatar} 
@@ -162,7 +163,7 @@ const BlogPost = () => {
             )}
             
             <div className="prose prose-lg max-w-none">
-              {post.content && renderContent(post.content)}
+              {post?.content && renderContent(post.content)}
             </div>
           </div>
         </div>
