@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { blogPosts } from '@/data/blog-posts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +26,13 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { BlogPostData } from "@/data/blog-posts";
+import { 
+  getAllBlogPosts, 
+  createBlogPost, 
+  updateBlogPost, 
+  deleteBlogPost 
+} from '@/services/blogService';
 
 // Define the form schema for blog posts
 const blogPostSchema = z.object({
@@ -41,11 +47,28 @@ type BlogPostFormValues = z.infer<typeof blogPostSchema>;
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([...blogPosts]);
+  const [posts, setPosts] = useState<BlogPostData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentPost, setCurrentPost] = useState<any>(null);
+  const [currentPost, setCurrentPost] = useState<BlogPostData | null>(null);
+  
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedPosts = await getAllBlogPosts();
+      setPosts(fetchedPosts);
+    } catch (error) {
+      toast.error("Failed to fetch blog posts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Create form
   const createForm = useForm<BlogPostFormValues>({
@@ -77,34 +100,28 @@ const Admin = () => {
     toast.success('Logged out successfully');
   };
 
-  const handleCreatePost = (data: BlogPostFormValues) => {
-    const newPost = {
-      id: `post-${Date.now()}`,
-      title: data.title,
-      excerpt: data.excerpt,
-      content: data.content,
-      category: data.category,
-      imageSrc: data.imageSrc || "/placeholder.svg",
-      date: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      readTime: "5 min read",
-      author: {
-        name: "Admin User",
-        avatar: "/placeholder.svg",
-      },
-      featured: false,
-    };
-    
-    setPosts([newPost, ...posts]);
-    setIsCreateDialogOpen(false);
-    createForm.reset();
-    toast.success("Blog post created successfully");
+  const handleCreatePost = async (data: BlogPostFormValues) => {
+    try {
+      const newPostId = await createBlogPost({
+        ...data,
+        readTime: "5 min read",
+        featured: false,
+      });
+
+      if (newPostId) {
+        await fetchPosts(); // Refetch posts to get the new one
+        setIsCreateDialogOpen(false);
+        createForm.reset();
+        toast.success("Blog post created successfully");
+      } else {
+        toast.error("Failed to create blog post");
+      }
+    } catch (error) {
+      toast.error("An error occurred while creating the post");
+    }
   };
   
-  const handleEditClick = (post: any) => {
+  const handleEditClick = (post: BlogPostData) => {
     setCurrentPost(post);
     editForm.reset({
       title: post.title,
@@ -116,35 +133,47 @@ const Admin = () => {
     setIsEditDialogOpen(true);
   };
   
-  const handleEditPost = (data: BlogPostFormValues) => {
-    const updatedPosts = posts.map(post => 
-      post.id === currentPost.id 
-        ? { 
-            ...post, 
-            title: data.title,
-            excerpt: data.excerpt,
-            content: data.content,
-            category: data.category,
-            imageSrc: data.imageSrc || post.imageSrc,
-          } 
-        : post
-    );
-    
-    setPosts(updatedPosts);
-    setIsEditDialogOpen(false);
-    toast.success("Blog post updated successfully");
+  const handleEditPost = async (data: BlogPostFormValues) => {
+    if (!currentPost) return;
+
+    try {
+      const success = await updateBlogPost(currentPost.id, {
+        ...data,
+      });
+
+      if (success) {
+        await fetchPosts(); // Refetch posts to get the updated one
+        setIsEditDialogOpen(false);
+        toast.success("Blog post updated successfully");
+      } else {
+        toast.error("Failed to update blog post");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating the post");
+    }
   };
   
-  const handleDeleteClick = (post: any) => {
+  const handleDeleteClick = (post: BlogPostData) => {
     setCurrentPost(post);
     setIsDeleteDialogOpen(true);
   };
   
-  const handleDeletePost = () => {
-    const updatedPosts = posts.filter(post => post.id !== currentPost.id);
-    setPosts(updatedPosts);
-    setIsDeleteDialogOpen(false);
-    toast.success("Blog post deleted successfully");
+  const handleDeletePost = async () => {
+    if (!currentPost) return;
+
+    try {
+      const success = await deleteBlogPost(currentPost.id);
+
+      if (success) {
+        setPosts(posts.filter(post => post.id !== currentPost.id));
+        setIsDeleteDialogOpen(false);
+        toast.success("Blog post deleted successfully");
+      } else {
+        toast.error("Failed to delete blog post");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting the post");
+    }
   };
 
   return (
@@ -170,42 +199,56 @@ const Admin = () => {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {posts.map((post) => (
-              <TableRow key={post.id}>
-                <TableCell className="font-medium">{post.title}</TableCell>
-                <TableCell>{post.category}</TableCell>
-                <TableCell>{post.date}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => handleEditClick(post)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="text-red-500"
-                      onClick={() => handleDeleteClick(post)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vulnscribe-purple"></div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">{post.title}</TableCell>
+                    <TableCell>{post.category}</TableCell>
+                    <TableCell>{post.date}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="icon" onClick={() => handleEditClick(post)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="text-red-500"
+                          onClick={() => handleDeleteClick(post)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4">
+                    No blog posts found. Create your first post!
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
       
       {/* Create Post Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

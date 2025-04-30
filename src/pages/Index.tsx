@@ -1,13 +1,36 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BlogPostCard from '@/components/BlogPostCard';
 import FeaturedPost from '@/components/FeaturedPost';
-import { blogPosts } from '@/data/blog-posts';
 import { Shield } from 'lucide-react';
+import { BlogPostData } from '@/data/blog-posts';
+import { getAllBlogPosts } from '@/services/blogService';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [blogPosts, setBlogPosts] = useState<BlogPostData[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setIsLoading(true);
+        const posts = await getAllBlogPosts();
+        setBlogPosts(posts);
+      } catch (err) {
+        setError('Failed to fetch blog posts. Please try again later.');
+        toast.error('Failed to fetch blog posts');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPosts();
+  }, []);
+  
   const featuredPost = blogPosts.find(post => post.featured);
   const recentPosts = blogPosts.filter(post => !post.featured).slice(0, 3);
   
@@ -62,7 +85,17 @@ const Index = () => {
           <div className="container">
             <h2 className="text-2xl font-bold mb-8 text-vulnscribe-dark">Featured Article</h2>
             
-            {featuredPost && <FeaturedPost post={featuredPost} />}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vulnscribe-purple"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500 p-8">{error}</div>
+            ) : featuredPost ? (
+              <FeaturedPost post={featuredPost} />
+            ) : (
+              <div className="text-center text-gray-500 p-8">No featured posts available.</div>
+            )}
           </div>
         </section>
         
@@ -71,20 +104,30 @@ const Index = () => {
           <div className="container">
             <h2 className="text-2xl font-bold mb-8 text-vulnscribe-dark">Recent Articles</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentPosts.map((post) => (
-                <BlogPostCard
-                  key={post.id}
-                  id={post.id}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  category={post.category}
-                  date={post.date}
-                  readTime={post.readTime}
-                  imageSrc={post.imageSrc}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vulnscribe-purple"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500 p-8">{error}</div>
+            ) : recentPosts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recentPosts.map((post) => (
+                  <BlogPostCard
+                    key={post.id}
+                    id={post.id}
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    category={post.category}
+                    date={post.date}
+                    readTime={post.readTime}
+                    imageSrc={post.imageSrc}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 p-8">No recent posts available.</div>
+            )}
           </div>
         </section>
         
