@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, Trash2, LogOut } from 'lucide-react';
+import { Pencil, Trash2, LogOut, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -30,8 +31,10 @@ import {
   getAllBlogPosts, 
   createBlogPost, 
   updateBlogPost, 
-  deleteBlogPost 
+  deleteBlogPost,
+  createSamplePost
 } from '@/services/blogService';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Define the form schema for blog posts
 const blogPostSchema = z.object({
@@ -54,6 +57,7 @@ const Admin = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<BlogPostData | null>(null);
+  const [isCreatingSample, setIsCreatingSample] = useState(false);
   
   useEffect(() => {
     fetchPosts();
@@ -107,6 +111,7 @@ const Admin = () => {
 
   const handleCreatePost = async (data: BlogPostFormValues) => {
     try {
+      console.log("Creating post with data:", data);
       const newPostId = await createBlogPost({
         title: data.title,
         excerpt: data.excerpt,
@@ -126,7 +131,27 @@ const Admin = () => {
         toast.error("Failed to create blog post");
       }
     } catch (error) {
+      console.error("Error creating post:", error);
       toast.error("An error occurred while creating the post");
+    }
+  };
+
+  const handleCreateSamplePost = async () => {
+    try {
+      setIsCreatingSample(true);
+      const newPostId = await createSamplePost();
+      
+      if (newPostId) {
+        await fetchPosts(); // Refetch posts to get the new one
+        toast.success("Sample blog post created successfully");
+      } else {
+        toast.error("Failed to create sample blog post");
+      }
+    } catch (error) {
+      console.error("Error creating sample post:", error);
+      toast.error("An error occurred while creating the sample post");
+    } finally {
+      setIsCreatingSample(false);
     }
   };
   
@@ -201,12 +226,22 @@ const Admin = () => {
         </Button>
       </div>
       
-      <div className="mb-6">
+      <div className="mb-6 flex gap-4">
         <Button 
           className="bg-vulnscribe-purple hover:bg-vulnscribe-lightpurple"
           onClick={() => setIsCreateDialogOpen(true)}
         >
           Add New Post
+        </Button>
+        
+        <Button 
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={handleCreateSamplePost}
+          disabled={isCreatingSample}
+        >
+          <PlusCircle className="h-4 w-4" />
+          {isCreatingSample ? "Creating..." : "Add Sample Post"}
         </Button>
       </div>
 
@@ -355,17 +390,19 @@ const Admin = () => {
                 control={createForm.control}
                 name="featured"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Featured</FormLabel>
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Input 
-                        type="checkbox"
+                      <Checkbox
                         checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                        className="w-4 h-4"
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Featured</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Mark this post as featured on the homepage
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />
@@ -477,17 +514,19 @@ const Admin = () => {
                 control={editForm.control}
                 name="featured"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Featured</FormLabel>
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Input 
-                        type="checkbox"
+                      <Checkbox
                         checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                        className="w-4 h-4"
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Featured</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Mark this post as featured on the homepage
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />

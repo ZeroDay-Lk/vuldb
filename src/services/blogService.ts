@@ -96,6 +96,8 @@ export async function getBlogPostById(id: string): Promise<BlogPostData | null> 
 // Create a new blog post
 export async function createBlogPost(blogPost: Omit<BlogPostData, 'id' | 'author' | 'date'>): Promise<string | null> {
   try {
+    console.log("Creating blog post with data:", blogPost);
+    
     // Get the default author
     const { data: authors, error: authorError } = await supabase
       .from("authors")
@@ -126,11 +128,60 @@ export async function createBlogPost(blogPost: Omit<BlogPostData, 'id' | 'author
       return null;
     }
 
+    console.log("Blog post created successfully:", data);
     return data[0].id;
   } catch (error) {
     console.error("Failed to create blog post:", error);
     return null;
   }
+}
+
+// Create a sample blog post about XSS vulnerabilities
+export async function createSamplePost(): Promise<string | null> {
+  const samplePost = {
+    title: "Understanding Cross-Site Scripting (XSS) Vulnerabilities",
+    excerpt: "XSS attacks are among the most common web application vulnerabilities. Learn how they work and how to prevent them in your applications.",
+    content: `# Understanding Cross-Site Scripting (XSS) Vulnerabilities
+
+Cross-Site Scripting (XSS) is one of the most prevalent web application security vulnerabilities. This attack occurs when malicious scripts are injected into trusted websites, allowing attackers to execute scripts in victims' browsers.
+
+## Types of XSS Attacks
+
+There are three main types of XSS attacks:
+
+- **Reflected XSS**: Where the malicious script comes from the current HTTP request
+- **Stored XSS**: Where the malicious script comes from the website's database
+- **DOM-based XSS**: Where the vulnerability exists in client-side code
+
+## Example of an XSS Vulnerability
+
+Here's a simple example of a vulnerable code snippet:
+
+\`\`\`javascript
+// Vulnerable code
+const userInput = document.getElementById('userInput').value;
+document.getElementById('output').innerHTML = userInput;
+\`\`\`
+
+The above code directly inserts user input into the DOM without sanitization, allowing attackers to inject scripts.
+
+## Prevention Techniques
+
+To prevent XSS attacks, follow these best practices:
+
+- Always validate and sanitize user inputs
+- Implement Content Security Policy (CSP)
+- Use modern frameworks that automatically escape potentially dangerous characters
+- Apply the principle of least privilege when including external scripts
+
+Remember: Security is a continuous process, not a one-time implementation.`,
+    category: "Web Security",
+    imageSrc: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    readTime: "7 min read",
+    featured: true
+  };
+
+  return createBlogPost(samplePost);
 }
 
 // Update a blog post
